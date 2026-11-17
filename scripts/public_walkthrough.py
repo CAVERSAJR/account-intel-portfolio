@@ -61,7 +61,7 @@ with sync_playwright() as pw:
     cu = page.inner_text('.ai-modal'); res['plan_for_the_week'] = page.inner_text('.ai-modal .ai-weekplan'); page.screenshot(path=str(OUT / '08_plan_for_the_week.png'))
     check('Advent: catch-me-up no longer says to build the plan', 'build and approve the Advent' not in cu and EDIT in cu, cu[:400])
     wk = page.locator('.ai-modal .ai-weekplan > li')
-    check('Plan for the week: five accounts at once with people and titles, no one-per-day rota', wk.count() == 5 and 'Work all five accounts every day' in cu and 'Heather Zuzenak, Chief Compliance Officer' in cu and 'Lizette Perez-Deisboeck, General Counsel and Chief Compliance Officer' in cu and not re.search(r'(?im)^\s*(mon|tue|wed|thu|fri)\s*$', cu), cu[:500])
+    check('Plan for the week: five accounts at once with people and titles, no one-per-day rota', wk.count() == 5 and 'Start with these priority accounts' in cu and 'Heather Zuzenak, Chief Compliance Officer' in cu and 'Lizette Perez-Deisboeck, General Counsel and Chief Compliance Officer' in cu and not re.search(r'(?im)^\s*(mon|tue|wed|thu|fri)\s*$', cu), cu[:500])
     page.keyboard.press('Escape'); page.wait_for_timeout(200)
     page.click('[data-open-value]'); tb = page.inner_text('.ai-modal'); res['time_back_after_live'] = tb[-260:]
     check('Time back shows the live run after a live draft', 'Your last AI draft' in tb, tb[-260:]); page.keyboard.press('Escape'); page.wait_for_timeout(200)

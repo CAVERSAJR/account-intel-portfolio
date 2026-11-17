@@ -71,7 +71,7 @@ def walk_core(pg, label, group):
     pg.locator('[data-nav="briefs"]').locator('visible=true').first.click(); pg.wait_for_timeout(300)
     pg.locator('#ai-stage [data-brief-kind="weekly"]').first.click(); pg.click('#ai-compose-brief'); pg.locator('#ai-save-brief').wait_for(timeout=8000)
     plan = pg.inner_text('.ai-modal')
-    check(group, f'{label}: plan for the week lists five accounts with people and titles', pg.locator('.ai-modal .ai-weekplan').first.locator('> li').count() == 5 and 'Chief Compliance Officer' in plan and 'Work all five accounts every day' in plan)
+    check(group, f'{label}: plan for the week lists five accounts with people and titles', pg.locator('.ai-modal .ai-weekplan').first.locator('> li').count() == 5 and 'Chief Compliance Officer' in plan and 'Start with these priority accounts' in plan)
     pg.keyboard.press('Escape')
     return order, plan
 

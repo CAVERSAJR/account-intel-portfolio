@@ -61,7 +61,7 @@ with sync_playwright() as pw:
     check('Handover brief: where to start, in score order', all(n in hand for n in ('Advent International', 'Francisco Partners', 'Battery Ventures')) and hand.index('Advent International') < hand.index('Francisco Partners') < hand.index('Battery Ventures'), hand[:500])
     check('Handover brief: customers to defend', 'TA Associates' in hand and 'HGGC' in hand and 'Retention play' in hand, hand[:800])
     plan = page.inner_text('.ai-weekplan'); res['week_plan'] = plan
-    check('Plan for the week: five accounts, named people with titles', all(n in plan for n in ('Advent International', 'Francisco Partners', 'Battery Ventures', 'Audax', 'GI Partners')) and 'Heather Zuzenak' in plan and 'Work all five accounts every day' in hand, plan[:500])
+    check('Plan for the week: five accounts, named people with titles', all(n in plan for n in ('Advent International', 'Francisco Partners', 'Battery Ventures', 'Audax', 'GI Partners')) and 'Heather Zuzenak' in plan and 'Start with these priority accounts' in hand, plan[:500])
     check('Plan for the week has no weekday rota', not re.search(r'\b(Monday|Tuesday|Wednesday|Friday):', plan), plan[:300])
     beat('New account list: handover brief and plan for the week', 2)
 
