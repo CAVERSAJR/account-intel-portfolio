@@ -35,7 +35,7 @@ This version focuses on one product: LP-obligation tracking for private-markets 
 - **Code controls** the ranking, the score, the request and response checks, account rules (for example, no expansion talk while a customer has an open service issue), the approval rules, tasks, briefs and the report. Catch me up and the weekly brief are built by code, not by extra model calls.
 - **The seller reviews** whether the sources support what the draft says, edits it and approves it.
 
-The checks confirm that each citation points to a real, active source supplied for that account, that hypotheses are labelled as hypotheses, that unsupported fields stay unknown, and that an email never tells the buyer we saw their page views, visits or email opens. A valid citation shows where a claim points; it does not prove the inference is right, which is why the seller reviews it. If a draft fails the checks, the screen says so and the model redrafts once; if the model is down, the seller's work is kept.
+The checks confirm that each citation points to a real, active source supplied for that account, that hypotheses are labelled as hypotheses, that unsupported fields stay unknown, and that an email never tells the buyer we saw their page views, visits or email opens. A valid citation shows where a claim points; it does not prove the inference is right, which is why the seller reviews it. If a draft fails the checks, the screen says so and the model redrafts once. If a regeneration fails, the previous plan, its edits, approval and tasks are kept and the failed attempt is shown separately; a failed first draft shows a prepared draft labelled as not an AI result.
 
 ## How it's built
 
@@ -80,6 +80,7 @@ Rebuild the browser engine after changing `workspace/`: `npm run build:engine`.
 - 15 scripted seller scenarios (118 checks) in a real browser: Monday seller, new rep, back from leave, stale plan, model outage, rapid clicks, phone width, blocked storage.
 - 57 checks for profile links, section layout at 360, 390 and 430 px, task dates, the calendar handoff and the PDF report.
 - 71 checks for the two-stage workflow: no invented contact at the start, reply and meeting only when recorded, the pre-call plan, notes that persist, briefs that notice changes, and tasks, calendar drafts and PDFs that agree.
+- 23 checks for failed regeneration: an approved, edited plan and its tasks survive a provider failure, an outdated plan stays flagged, a failed first draft is labelled as prepared, and a successful regenerate still asks for review.
 - A wording audit across 341 screens and dialogs, and release checks for headers, speed, accessibility, keyboard use and Safari's engine.
 
 ## Current limitations
