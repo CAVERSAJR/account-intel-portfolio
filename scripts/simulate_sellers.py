@@ -420,7 +420,7 @@ def weekly_plan(r: Run):
     r.check('Every account names people with their titles', all(len(p) >= 2 and all(',' in x for x in p) for p in people), people)
     r.check('Three people where a meeting is booked, two elsewhere', [len(p) for p in people] == [3, 2, 2, 2, 2], [len(p) for p in people])
     r.check('Advent lists the people already engaged: Heather, Brian and Sarah', [x.split(',')[0] for x in people[0]] == ['Heather Zuzenak', 'Brian Busch', 'Sarah Mead Smith'], people[0])
-    r.check('Buying roles are labeled', 'Champion' in people[1][0] and 'Budget owner' in people[1][1], people[1])
+    r.check('Buying roles are labeled as possibilities, not facts', 'Potential champion' in people[1][0] and 'Potential budget owner' in people[1][1], people[1])
     r.check('Each account carries this week\'s move', brief.upper().count('THIS WEEK') == 7, brief.upper().count('THIS WEEK'))
     r.check('Customers follow under Defend the house, with their people', 'Defend the house' in brief and 'Rachel Stock, General Counsel and Chief Compliance Officer' in brief and 'TA Associates' in brief, brief[-500:])
     before = brief
