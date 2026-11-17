@@ -98,7 +98,7 @@ def new_seller(r: Run):
     r.check('Churn risk surfaced under Customer priorities: HGGC retention play', 'Customer priorities' in text and 'HGGC' in text and 'Retention play' in text)
     r.check('Expansion surfaced: TA Associates expansion opportunity', 'TA Associates' in text and 'Expansion opportunity' in text)
     plan = r.text('.ai-modal .ai-weekplan'); rows = r.page.locator('.ai-modal .ai-weekplan > li').count()
-    r.check('Plan for the week covers all five accounts at once, not one per day', rows == 5 and 'Plan for the week' in text and 'Work all five accounts every day' in text and not re.search(r'(?im)^\s*(mon|tue|wed|thu|fri)\s*$', text), (rows, plan[:200]))
+    r.check('Plan for the week covers all five accounts at once, not one per day', rows == 5 and 'Plan for the week' in text and 'Start with these priority accounts' in text and not re.search(r'(?im)^\s*(mon|tue|wed|thu|fri)\s*$', text), (rows, plan[:200]))
     r.check('Each account names its people with titles', all(x in plan for x in ('Heather Zuzenak, Chief Compliance Officer', 'Steve Eisner, Partner, General Counsel', 'Lizette Perez-Deisboeck, General Counsel and Chief Compliance Officer', 'Daniel Weintraub, Chief Legal Officer', 'David A. Smolen, Managing Director')), plan[:700])
     r.click('.ai-weekplan [data-account="advent"]', 'Plan: open Advent')
     r.check('Plan link lands on Advent record', 'Advent International' in r.text('#ai-breadcrumb'))
@@ -414,14 +414,14 @@ def weekly_plan(r: Run):
     rows = r.page.locator('.ai-modal .ai-weekplan').first.locator('> li')
     names = [rows.nth(i).locator('.ai-inlineaccount').inner_text() for i in range(rows.count())]
     r.check('Five accounts in score order: Advent, Francisco, Battery Ventures, Audax, GI', names == ['1. Advent International', '2. Francisco Partners', '3. Battery Ventures', '4. Audax Private Equity', '5. GI Partners'], names)
-    r.check('The plan says to work all five every day', 'Work all five accounts every day' in brief, brief[:200])
+    r.check('The plan starts with the priority accounts and leaves the choice to the seller', 'Start with these priority accounts' in brief and 'every day' not in brief, brief[:200])
     r.check('No one-account-per-day rota', not re.search(r'(?im)^\s*(mon|tue|wed|thu|fri)(day)?\b', brief) and 'first five days' not in brief.lower(), brief[:300])
     people = [rows.nth(i).locator('.ai-weekpeople li').all_inner_texts() for i in range(rows.count())]
     r.check('Every account names people with their titles', all(len(p) >= 2 and all(',' in x for x in p) for p in people), people)
     r.check('Two people per account before any meeting is booked', [len(p) for p in people] == [2, 2, 2, 2, 2], [len(p) for p in people])
     r.check('Advent lists its potential champion and budget owner (no one engaged yet)', [x.split(',')[0] for x in people[0]] == ['Heather Zuzenak', 'Susan Gentile'], people[0])
     r.check('Buying roles are labeled as possibilities, not facts', 'Potential champion' in people[1][0] and 'Potential budget owner' in people[1][1], people[1])
-    r.check('Each account carries this week\'s move', brief.upper().count('THIS WEEK') == 7, brief.upper().count('THIS WEEK'))
+    r.check('Each account carries this week\'s move', r.page.locator('.ai-modal .ai-weekmove').count() == 7, r.page.locator('.ai-modal .ai-weekmove').count())
     r.check('Customers follow under Customer priorities, with their people', 'Customer priorities' in brief and 'Rachel Stock, General Counsel and Chief Compliance Officer' in brief and 'TA Associates' in brief, brief[-500:])
     before = brief
     r.page.keyboard.press('Escape'); r.page.wait_for_timeout(200)
@@ -472,7 +472,7 @@ def tour(r: Run):
         if i == 4:
             r.check('Tour offers to draft live', r.page.locator('[data-tour-run]').count() == 1)
         r.click('[data-tour-next]', f'Tour step {i + 1}')
-    r.check('Tour walks all ten steps in order', titles[0] == 'Your book, ranked' and titles[4] == 'Watch AI draft the campaign' and titles[8] == 'From reply to discovery meeting' and titles[-1] == 'Your weekly brief', titles)
+    r.check('Tour walks all ten steps in order', titles[0] == 'Your accounts, ranked' and titles[4] == 'Watch AI draft the campaign' and titles[8] == 'From reply to discovery meeting' and titles[-1] == 'Your weekly brief', titles)
     r.check('Each step highlights what it explains', all(marked), marked)
     r.check('Finish closes the tour', r.page.locator('#ai-tour').count() == 0 and r.page.locator('.ai-tourtarget').count() == 0)
     r.click('.ai-sidebar [data-modal="seller-guide"]', 'Seller Q&A')
