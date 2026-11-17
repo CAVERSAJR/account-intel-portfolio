@@ -54,7 +54,7 @@ with sync_playwright() as pw:
     page.fill('#ai-plan-action', EDIT); page.click('#ai-approve-plan'); page.wait_for_timeout(500)
     page.reload(); page.wait_for_timeout(1500); page.click('.ai-sidebar [data-nav="focus"]'); page.wait_for_timeout(400)
     focus = page.inner_text('#ai-stage'); page.screenshot(path=str(OUT / '03_my_focus_after_approval_and_refresh.png'))
-    check('Advent: after approve and refresh, My focus shows the exact edited task', EDIT in focus and 'Approved' in focus, focus[:400])
+    check('Advent: after approve and refresh, My focus shows the exact edited task', EDIT in focus and 'Approved by you' in focus, focus[:400])
     page.click('.ai-sidebar [data-nav="tasks"]'); page.wait_for_timeout(300); tasks = page.inner_text('#ai-stage')
     check('Advent: the edited task is in My tasks', EDIT in tasks, tasks[:300])
     page.click('.ai-sidebar [data-nav="focus"]'); page.click('#ai-stage [data-catchup]'); page.click('[data-catch-run]'); page.locator('.ai-weekplan').wait_for(timeout=5000)

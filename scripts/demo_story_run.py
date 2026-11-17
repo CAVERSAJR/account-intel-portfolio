@@ -95,7 +95,7 @@ with sync_playwright() as pw:
     check('Advent email is first outreach: no invented call, meeting or tracking', not re.search(r'thanks for the call|our call|pre-read|walkthrough|nov 19|viewed|visited|looked at|opened', a['subject'] + ' ' + a['message'], re.I), a['message'])
     page.fill('#ai-plan-action', EDIT); page.click('#ai-approve-plan'); page.wait_for_timeout(500)
     page.click('.ai-sidebar [data-nav="focus"]'); page.wait_for_timeout(400); focus2 = page.inner_text('#ai-stage')
-    check('Approved plan: My focus shows the exact edited task', EDIT in focus2 and 'Approved' in focus2, focus2[:400])
+    check('Approved plan: My focus shows the exact edited task', EDIT in focus2 and 'Approved by you' in focus2, focus2[:400])
     beat('Live AI campaign, edit, approve', 5)
 
     # Beat 5b: the approved action becomes a dated task

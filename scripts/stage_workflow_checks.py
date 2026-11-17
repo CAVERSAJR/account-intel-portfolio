@@ -33,14 +33,14 @@ with sync_playwright() as pw:
     # ---------- A. initial outreach: nothing invented ----------
     focus = p.inner_text('#ai-stage')
     adv_row = focus.split('Advent International')[1][:260]
-    check('My focus: Advent is Researching with no recent touch', 'Researching · No recent touch' in adv_row, adv_row)
+    check('My focus: Advent is Researching with no outreach yet', 'Researching · No outreach yet' in adv_row, adv_row)
     check('My focus: no booked meeting or prior email anywhere', 'Meeting booked' not in focus and 'Outreach started' not in focus and 'Last touch' not in focus, re.findall(r'Meeting booked|Outreach started|Last touch[^\n]*', focus))
     check('Wording: Your priority accounts and Customer priorities on My focus', 'Your priority accounts' in focus and 'Customer priorities' in focus and 'Defend the house' not in focus and 'Top five' not in focus)
     open_advent(p)
     ov = p.inner_text('#ai-stage')
     check('Account overview tab, People to contact, Why prioritize this account', 'Account overview' in ov and 'People to contact' in ov and 'Why prioritize this account' in ov, '')
     check('Advent overview: stage Researching, no prior call or known pain', 'Stage\nResearching' in ov and not re.search(r'Nov 11|opened your|Intro email|call with', ov, re.I), re.findall(r'Stage\n\w+', ov))
-    check('Advent next action is first outreach, not meeting prep', 'Email Heather Zuzenak: ask how side letter obligations from the new funds are tracked' in ov and 'meeting' not in ov.split('Recommended next action')[1][:200].lower(), ov.split('Recommended next action')[1][:200] if 'Recommended next action' in ov else '')
+    check('Advent next action is first outreach, not meeting prep', 'Contact Heather Zuzenak: ask how side letter obligations from the new funds are tracked' in ov and 'meeting' not in ov.split('Recommended next action')[1][:200].lower(), ov.split('Recommended next action')[1][:200] if 'Recommended next action' in ov else '')
     p.click('#ai-stage [data-tab="activity"]'); p.wait_for_timeout(300)
     act = p.inner_text('#ai-stage')
     check('Activity: buyer signals only, labelled simulated, no seller contact', 'Simulated activity' in act and 'Your activity' not in act and 'Coming up' not in act, act[:400])
