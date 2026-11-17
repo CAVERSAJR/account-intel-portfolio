@@ -1,0 +1,17 @@
+{
+  "name": "account-intel",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run --config workspace/vitest.config.ts",
+    "typecheck": "tsc -p workspace/tsconfig.json",
+    "build:engine": "esbuild workspace/engine.public.ts --bundle --format=iife --target=es2020 --minify --outfile=app/engine.js",
+    "serve": "python server/server.py --port 8767 --static app"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.5",
+    "esbuild": "0.25.12",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

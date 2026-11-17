@@ -1,0 +1,14 @@
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+.vercel/
+.env
+.env.*
+!.env.example
+server/runtime/
+*.dpapi
+docs/
+scripts/banned_private.txt
+*.log
+.DS_Store
