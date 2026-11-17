@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 
 URL = (sys.argv[1] if len(sys.argv) > 1 else 'https://account-intel-live.vercel.app').rstrip('/') + '/'
 OUT = Path(sys.argv[2] if len(sys.argv) > 2 else 'docs/story_run'); OUT.mkdir(parents=True, exist_ok=True)
-EDIT = 'Send Heather the pre-read by Wednesday and confirm Brian is joining Thursday.'
+EDIT = 'Email Heather today: ask how side letter obligations from GPE XI are tracked, and who owns them.'
 FILLER = re.compile(r"\bI imagine\b|\bI hope\b|\bI(?:'m| am|’m) curious\b|\breach(?:ing|ed)? out\b|investor obligation|—|!", re.I)
 res = {'url': URL, 'checks': [], 'beats': []}
 T0 = None
@@ -55,7 +55,7 @@ with sync_playwright() as pw:
 
     # Beat 2: inherited a new book
     page.click('#ai-stage [data-catchup]'); page.wait_for_timeout(300); pick = page.inner_text('.ai-modal'); res['catch_pick'] = pick
-    check('Catch me up offers both stories: new to this book, back from leave', 'New to this book' in pick and 'Back from leave' in pick, pick[:300])
+    check('Catch me up offers both stories: new account list, back from leave', 'New account list' in pick and 'Back from leave' in pick, pick[:300])
     page.click('[data-catch-run]'); page.locator('.ai-weekplan').wait_for(timeout=5000); page.wait_for_timeout(300)
     hand = page.inner_text('.ai-modal'); res['handover'] = hand; page.screenshot(path=str(OUT / '02_new_book_handover.png'))
     check('Handover brief: where to start, in score order', all(n in hand for n in ('Advent International', 'Francisco Partners', 'Battery Ventures')) and hand.index('Advent International') < hand.index('Francisco Partners') < hand.index('Battery Ventures'), hand[:500])
@@ -63,7 +63,7 @@ with sync_playwright() as pw:
     plan = page.inner_text('.ai-weekplan'); res['week_plan'] = plan
     check('Plan for the week: five accounts, named people with titles', all(n in plan for n in ('Advent International', 'Francisco Partners', 'Battery Ventures', 'Audax', 'GI Partners')) and 'Heather Zuzenak' in plan and 'Work all five accounts every day' in hand, plan[:500])
     check('Plan for the week has no weekday rota', not re.search(r'\b(Monday|Tuesday|Wednesday|Friday):', plan), plan[:300])
-    beat('New to this book: handover brief and plan for the week', 2)
+    beat('New account list: handover brief and plan for the week', 2)
 
     # Beat 3: back from leave
     page.click('[data-catch-kind="return"]'); page.wait_for_timeout(200)
@@ -92,12 +92,34 @@ with sync_playwright() as pw:
     check('Advent live draft succeeded, every claim sourced', a['live'] and not a['failed'] and a['sourced'] and a['sourced'].split('/')[0].strip() == a['sourced'].split('/')[1].strip(), a)
     check('Advent email goes to the planned contact, greeting on its own line', a['contact'].startswith('Heather Zuzenak') and a['message'].startswith('Hi Heather,\n\n'), a['message'][:200])
     check('Advent email has no filler, no banned wording', not FILLER.search(a['subject'] + ' ' + a['message']), a['message'])
+    check('Advent email is first outreach: no invented call, meeting or tracking', not re.search(r'thanks for the call|our call|pre-read|walkthrough|nov 19|viewed|visited|looked at|opened', a['subject'] + ' ' + a['message'], re.I), a['message'])
     page.fill('#ai-plan-action', EDIT); page.click('#ai-approve-plan'); page.wait_for_timeout(500)
     page.click('.ai-sidebar [data-nav="focus"]'); page.wait_for_timeout(400); focus2 = page.inner_text('#ai-stage')
     check('Approved plan: My focus shows the exact edited task', EDIT in focus2 and 'Approved' in focus2, focus2[:400])
     beat('Live AI campaign, edit, approve', 5)
 
+    # Beat 5b: the approved action becomes a dated task
+    page.click('.ai-sidebar [data-nav="tasks"]'); page.wait_for_timeout(400)
+    check('My tasks: the exact action, not scheduled until a date is set', EDIT in page.inner_text('#ai-stage') and page.locator('[data-task-due="advent-0"]').count() == 1)
+    page.fill('[data-task-due="advent-0"]', '2026-11-17'); page.dispatch_event('[data-task-due="advent-0"]', 'change'); page.wait_for_timeout(400)
+    check('Set date Nov 17: calendar draft offered', 'Due Nov 17' in page.inner_text('#ai-stage') and page.locator('[data-cal-open="advent-0"]').count() == 1)
+    beat('Task dated, calendar draft', 2)
+
+    # Beat 5c: recorded reply, confirmed meeting, pre-call plan
+    page.click('.ai-sidebar [data-nav="accounts"]'); page.wait_for_timeout(300); page.click('#ai-stage [data-account="advent"]'); page.wait_for_timeout(300)
+    page.click('#ai-stage [data-tab="meeting"]'); page.wait_for_timeout(300)
+    check('Discovery meeting: no reply until one is recorded', 'No reply recorded' in page.inner_text('#ai-stage'))
+    page.click('#ai-rr-sim'); page.click('#ai-rr-save'); page.wait_for_timeout(400)
+    check('Simulated reply recorded: stage Positive reply, labelled', 'Stage: Positive reply' in page.inner_text('#ai-stage') and 'simulated' in page.inner_text('#ai-stage'))
+    page.fill('#ai-mt-date', '2026-11-19'); page.fill('#ai-mt-time', '10:00'); page.click('#ai-mt-save'); page.wait_for_timeout(300)
+    check('Meeting draft saved but not booked', 'Stage: Positive reply' in page.inner_text('#ai-stage') and page.locator('#ai-stage [data-meet-cal]').count() == 1)
+    page.click('#ai-mt-confirm'); page.wait_for_timeout(500); pc = page.inner_text('#ai-stage'); res['precall'] = pc
+    page.screenshot(path=str(OUT / '06b_precall_plan.png'))
+    check('Confirmed meeting: internal pre-call plan with shareable agenda, hypotheses and blank notes', 'Stage: Meeting booked' in pc and 'internal pre-call plan' in pc.lower() and 'can be shared with the buyer' in pc.lower() and 'Unknown until the buyer says'.lower() in pc.lower() and page.input_value('#ai-pc-said') == '', pc[:400])
+    beat('Reply, meeting, pre-call plan', 4)
+
     # Beat 6: change one input
+    page.click('.ai-sidebar [data-nav="focus"]'); page.wait_for_timeout(300)
     page.click('#ai-stage [data-account="advent"]'); page.wait_for_timeout(300)
     page.click('#ai-stage [data-modal="research"]'); page.wait_for_timeout(300)
     page.locator('#ai-event-toggle').uncheck(force=True); page.wait_for_timeout(400); toast = page.inner_text('#ai-toast')
@@ -121,7 +143,7 @@ with sync_playwright() as pw:
     page.click('#ai-stage [data-account="thoma"]'); page.wait_for_timeout(400)
     tb_acct = page.inner_text('#ai-stage'); res['thoma_account'] = tb_acct; page.screenshot(path=str(OUT / '07_thoma_account.png'))
     check('Thoma Bravo: account opens with a score, a stage and named people', 'Thoma Bravo' in tb_acct and re.search(r'\b\d\.\d\b', tb_acct) and re.search(r'\bP[12]\b', tb_acct), tb_acct[:300])
-    check('Thoma Bravo: score, Why now and What we know agree on the Jun 3, 2025 fund close', 'Last relevant fund event (Jun 3, 2025) is over a year old.' in tb_acct and 'Fund close · Jun 3, 2025. Over a year old (0 of 4 timing points).' in tb_acct and 'Announced Jun 3, 2025.' in tb_acct and 'No dated fund event on file' not in tb_acct and 'No dated trigger yet' not in tb_acct, tb_acct[:900])
+    check('Thoma Bravo: score, Why now and What we know agree on the Jun 3, 2025 fund close', 'Last relevant fund event (Jun 3, 2025) is over a year old.' in tb_acct and 'Fund close · Jun 3, 2025. Older fund event (0 of 4 timing points).' in tb_acct and 'Announced Jun 3, 2025.' in tb_acct and 'No dated fund event on file' not in tb_acct and 'No dated trigger yet' not in tb_acct, tb_acct[:900])
     t = res['thoma'] = draft(page, 'thoma', '08_thoma_live_draft.png')
     check('Thoma Bravo live draft succeeded, every claim sourced', t['live'] and not t['failed'] and t['sourced'] and t['sourced'].split('/')[0].strip() == t['sourced'].split('/')[1].strip(), t)
     check('Thoma Bravo email: named contact, greeting on its own line', re.match(r'Hi [A-Z][a-z]+,\n\n', t['message']) and t['message'].split(',')[0][3:] == t['contact'].split()[0], (t['contact'], t['message'][:120]))

@@ -219,7 +219,10 @@ class EmailTests(unittest.TestCase):
         cases = {"unknown contact": {"contact_id": "CT-ffffffffffff-profile"}, "not a contact": {"contact_id": "demo-source"},
                  "generic greeting": {"body": "Hello, how do you track side letter obligations today?"},
                  "wrong name": {"body": "Hi Heather, how do you track side letter obligations today?"},
-                 "too long": {"body": "Hi Rachel, " + "word " * 120}, "extra key": {"cc": "someone"}}
+                 "too long": {"body": "Hi Rachel, " + "word " * 120}, "extra key": {"cc": "someone"},
+                 # The live draft of 2026-11-16 told the buyer we saw their page views.
+                 "mentions page views": {"body": "Hi Rachel, two of your Legal colleagues looked at our side letter obligations material. Worth a call?"},
+                 "mentions an email open": {"body": "Hi Rachel, I saw you opened my email last week. Worth a call?"}}
         for label, change in cases.items():
             with self.subTest(label):
                 plan = copy.deepcopy(self.plan); plan["email"].update(change)

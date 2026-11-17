@@ -27,6 +27,8 @@ function text(v, name, max, allowEmpty = false) {
 }
 
 // Filler a seller would not write. The same list is in the local server and the page.
+// The buyer must never read that we watched their page views or email opens.
+export const EMAIL_TRACKING = /\b(?:visit(?:ed|ors?)|viewed|looked at|page views?|clicked|downloaded|opened (?:my|our|the|your) (?:email|message|note|intro))\b|\b(?:your|the) (?:website|site) (?:activity|visits?)\b/i;
 export const SELLER_FILLER = /\bI imagine\b|\bI hope\b|\bI(?:'m| am|\u2019m) curious\b|\breach(?:ing|ed)? out\b|\btouch(?:ing)? base\b|\bcircl(?:e|ing) back\b|\bdelv(?:e|es|ing)\b|\bseamless(?:ly)?\b|\bunlock(?:s|ed|ing)?\b|\bempower(?:s|ed|ing)?\b|\brobust\b|\bstreamlin(?:e|es|ed|ing)\b|\bgame-chang\w*|\bcutting-edge\b|\bsupercharg\w*|\bholistic\b|\bsynerg\w*|\bbespoke\b|\bbest-in-class\b|\bworld-class\b/i;
 function wording(...texts) {
   for (const value of texts) {
@@ -156,6 +158,7 @@ function validateEmail(email, contacts, recipient) {
   if (recipient !== undefined && email.contact_id !== recipient) throw new ApiError(400, 'Email must go to the contact the seller chose.');
   const subject = text(email.subject, 'email subject', 80), body = text(email.body, 'email body', 900);
   wording(subject, body);
+  if (EMAIL_TRACKING.test(subject + ' ' + body)) throw new ApiError(400, 'Email must not mention the buyer\'s page views, visits or email opens.');
   const greeting = body.match(/^Hi ([^,\n]{1,40}),/), name = contact.text.split(' \u2014 ')[0].toLowerCase();
   if (!greeting || !name.includes(greeting[1].trim().toLowerCase()) || body.split(/\s+/).length > 110) throw new ApiError(400, 'Email must greet the chosen contact and stay short.');
 }

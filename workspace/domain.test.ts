@@ -475,6 +475,8 @@ describe('propensity score (0–10)', () => {
       { contactId: 'CT-2f153a16442e', subject: 'Pre-read', body: 'Hi Heather,\n\nA short pre-read before we meet. Anything to add?' });
     const other = base(); other.email.contact_id = 'CT-9958bb32b128-profile'; // an HGGC contact
     expect(() => validateModelPlan(other, ranked, dataset, state)).toThrow(/outside this account/);
+    const tracked = base(); tracked.email.body = 'Hi Heather, two of your Legal colleagues looked at our side letter obligations material. Worth a call?'; // the live draft of 2026-11-16
+    expect(() => validateModelPlan(tracked, ranked, dataset, state)).toThrow(/page views/);
     const wrongName = base(); wrongName.email.body = 'Hi Rachel, a short pre-read.';
     expect(() => validateModelPlan(wrongName, ranked, dataset, state)).toThrow(/greet/);
     // The exact phrase that reached a seller on 2026-11-15.

@@ -11,6 +11,8 @@ const BASES: Basis[] = ['fact', 'hypothesis', 'unknown', 'scenario'];
 // Seller-visible AI text must not carry demo labels or echo the server's routing instructions.
 export const SELLER_LEAK = /\b(?:fictional|illustrative|simulated|scenarios?)\b|net_new|customer_hold|server_demo_policy|account_policy|\bdemo (?:hold|policy|lane|motion|data|workspace)\b|\bno (?:demo )?hold applies\b|\bhold does not apply\b|\bthe server\b|\binvestor commitments?\b|\bfund obligations?\b/i;
 // Filler a seller would not write. The same list is in the local server and the hosted function.
+// The buyer must never read that we watched their page views or email opens.
+export const EMAIL_TRACKING = /\b(?:visit(?:ed|ors?)|viewed|looked at|page views?|clicked|downloaded|opened (?:my|our|the|your) (?:email|message|note|intro))\b|\b(?:your|the) (?:website|site) (?:activity|visits?)\b/i;
 export const SELLER_FILLER = /\bI imagine\b|\bI hope\b|\bI(?:'m| am|\u2019m) curious\b|\breach(?:ing|ed)? out\b|\btouch(?:ing)? base\b|\bcircl(?:e|ing) back\b|\bdelv(?:e|es|ing)\b|\bseamless(?:ly)?\b|\bunlock(?:s|ed|ing)?\b|\bempower(?:s|ed|ing)?\b|\brobust\b|\bstreamlin(?:e|es|ed|ing)\b|\bgame-chang\w*|\bcutting-edge\b|\bsupercharg\w*|\bholistic\b|\bsynerg\w*|\bbespoke\b|\bbest-in-class\b|\bworld-class\b/i;
 const wording = (...texts: string[]) => {
   for (const value of texts) {
@@ -509,6 +511,7 @@ export function validateModelPlan(raw: unknown, account: RankedAccount, dataset:
     if (!contact || !active.has(`${contactId}-profile`)) throw new Error('AI email is addressed to someone outside this account\'s sourced contacts.');
     const greeting = /^Hi ([^,\n]{1,40}),/.exec(value.body as string);
     if (!greeting || !contact.name.toLowerCase().includes(greeting[1].trim().toLowerCase())) throw new Error('AI email must greet the chosen contact by name.');
+    if (EMAIL_TRACKING.test(`${value.subject} ${value.body}`)) throw new Error('AI email must not mention the buyer\'s page views, visits or email opens.');
     wording(value.subject as string, value.body as string);
     email = { contactId, subject: lpTerms(value.subject as string), body: greetingLine(lpTerms(value.body as string)) };
   }

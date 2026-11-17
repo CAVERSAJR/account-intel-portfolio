@@ -46,6 +46,8 @@ DATA_PATH = Path(__file__).resolve().parents[1] / "workspace" / "data.json"
 # Optional Windows-only fallback: a DPAPI-protected key file named by ACCOUNT_INTEL_DPAPI. Most setups just set DEEPSEEK_API_KEY.
 DPAPI_PATH = Path(os.environ.get("ACCOUNT_INTEL_DPAPI", "") or "deepseek.dpapi.missing")
 # Filler a seller would not write. The same list is in the hosted function and the page.
+# The buyer must never read that we watched their page views or email opens.
+EMAIL_TRACKING = re.compile(r"\b(?:visit(?:ed|ors?)|viewed|looked at|page views?|clicked|downloaded|opened (?:my|our|the|your) (?:email|message|note|intro))\b|\b(?:your|the) (?:website|site) (?:activity|visits?)\b", re.I)
 SELLER_FILLER = re.compile(r"\bI imagine\b|\bI hope\b|\bI(?:'m| am|\u2019m) curious\b|\breach(?:ing|ed)? out\b|\btouch(?:ing)? base\b|\bcircl(?:e|ing) back\b|\bdelv(?:e|es|ing)\b|\bseamless(?:ly)?\b|\bunlock(?:s|ed|ing)?\b|\bempower(?:s|ed|ing)?\b|\brobust\b|\bstreamlin(?:e|es|ed|ing)\b|\bgame-chang\w*|\bcutting-edge\b|\bsupercharg\w*|\bholistic\b|\bsynerg\w*|\bbespoke\b|\bbest-in-class\b|\bworld-class\b", re.I)
 ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,95}$")
 # Seller-visible model text must not carry demo labels or echo the routing instructions.
@@ -367,6 +369,8 @@ def _validate_email(email, contacts, recipient=None):
     subject = _text(email["subject"], "email subject", 80)
     body = _text(email["body"], "email body", 900)
     _wording(subject, body)
+    if EMAIL_TRACKING.search(subject + " " + body):
+        raise ApiError(400, "Email must not mention the buyer's page views, visits or email opens.")
     greeting = re.match(r"Hi ([^,\n]{1,40}),", body)
     name = contact["text"].split(" \u2014 ")[0].lower()
     if not greeting or greeting.group(1).strip().lower() not in name or len(body.split()) > 110:

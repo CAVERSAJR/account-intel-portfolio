@@ -92,10 +92,10 @@ def new_seller(r: Run):
     go_focus(r); r.click('#ai-stage [data-catchup]', 'Catch me up')
     r.click('[data-catch-run]', 'Prepare handover brief'); r.page.locator('.ai-weekplan').wait_for(timeout=5000)
     r.mark('book_understood'); text = r.text('.ai-modal'); r.shot('handover')
-    start = text.split('Start here')[1].split('Defend the house')[0]
+    start = text.split('Your priority accounts')[1].split('Customer priorities')[0]
     order = [start.find(n) for n in ('Advent International', 'Francisco Partners', 'Battery Ventures')]
-    r.check('Start here = Advent, Francisco, Battery Ventures in score order', all(i >= 0 for i in order) and order == sorted(order), order)
-    r.check('Churn risk surfaced under Defend the house: HGGC retention play', 'Defend the house' in text and 'HGGC' in text and 'Retention play' in text)
+    r.check('Your priority accounts = Advent, Francisco, Battery Ventures in score order', all(i >= 0 for i in order) and order == sorted(order), order)
+    r.check('Churn risk surfaced under Customer priorities: HGGC retention play', 'Customer priorities' in text and 'HGGC' in text and 'Retention play' in text)
     r.check('Expansion surfaced: TA Associates expansion opportunity', 'TA Associates' in text and 'Expansion opportunity' in text)
     plan = r.text('.ai-modal .ai-weekplan'); rows = r.page.locator('.ai-modal .ai-weekplan > li').count()
     r.check('Plan for the week covers all five accounts at once, not one per day', rows == 5 and 'Plan for the week' in text and 'Work all five accounts every day' in text and not re.search(r'(?im)^\s*(mon|tue|wed|thu|fri)\s*$', text), (rows, plan[:200]))
@@ -107,7 +107,7 @@ def new_seller(r: Run):
     r.click('#ai-approve-plan', 'Approve plan'); r.mark('first_approved_plan')
     go_focus(r); r.click('#ai-stage [data-catchup]', 'Catch me up')
     r.click('[data-catch-run]', 'Prepare handover again'); r.page.locator('.ai-weekplan').wait_for(timeout=5000)
-    r.click('.ai-modal .ai-punchlist [data-account="hggc"]', 'Defend the house: open HGGC')
+    r.click('.ai-modal .ai-punchlist [data-account="hggc"]', 'Customer priorities: open HGGC')
     r.click('#ai-cs-review', 'Start retention play'); r.mark('retention_play')
     r.click('.ai-sidebar [data-nav="tasks"]', 'My tasks'); tasks = r.text('#ai-stage')
     r.check('Retention play task owned by the account team', 'Retention play' in tasks and 'Account team' in tasks, tasks[:300])
@@ -191,7 +191,7 @@ def mobile(r: Run):
 def no_storage(r: Run):
     go_focus(r); r.click('#ai-stage [data-catchup]', 'Catch me up'); r.click('[data-catch-run]', 'Prepare')
     r.page.locator('.ai-weekplan').wait_for(timeout=5000)
-    r.check('Catch-up works without storage', 'Start here' in r.text('.ai-modal'))
+    r.check('Catch-up works without storage', 'Your priority accounts' in r.text('.ai-modal'))
 
 
 BANNED = ['pilot', 'build versus buy', 'build vs buy', 'baseline', 'modeled', 'assumption', 'documented',
@@ -237,7 +237,7 @@ def seller_voice(r: Run):
     r.check('Data disclosure answers the real-data question; no demo badge', 'Is this real customer data?' in qa and 'Preqin' in qa and 'Demo workspace' not in r.text('body'), qa[-500:])
     r.page.keyboard.press('Escape'); r.page.wait_for_timeout(200)
     r.click('.ai-sidebar [data-tour-start]', 'Tour')
-    for i in range(9):
+    for i in range(10):
         r.page.locator('#ai-tour h2').wait_for(timeout=5000); seen.append(r.text('#ai-tour'))
         r.click('[data-tour-next]', 'Tour next')
     blob = ' '.join(seen).lower()
@@ -260,8 +260,8 @@ ADVENT_PLAN = {
     ],
     'questions': ['How do you track side letter obligations across the new funds today?'],
     'actions': ['Review the fundraise and prepare two discovery questions.'],
-    'email': {'contact_id': 'CT-2f153a16442e-profile', 'subject': 'Pre-read for Nov 19',
-              'body': 'Hi Heather,\n\nAhead of our Nov 19 walkthrough I will send a short pre-read on how side letter obligations are tracked today. Is there anything you or Brian would like added?\n\nBest,\nAlex'},
+    'email': {'contact_id': 'CT-2f153a16442e-profile', 'subject': 'Side letters across the new funds',
+              'body': 'Hi Heather,\n\nI saw Advent announced its fundraise across GPE XI and the new mid-market strategy in October. How are side letter obligations from the new funds tracked today, and who owns them?\n\nBest,\nAlex'},
 }
 
 
@@ -365,7 +365,7 @@ def demo_path(r: Run):
     r.check('Before any live draft, Time back shows a saved example, labeled as one', 'Saved example' in tb and 'Your last AI draft' not in tb, tb[-300:])
     r.page.keyboard.press('Escape'); r.page.wait_for_timeout(200)
     focus = r.text('#ai-stage')
-    r.check('Every account shows a stage and last touch', 'Meeting booked · Last touch Nov 11' in focus and 'No recent touch' in focus, focus[:500])
+    r.check('Every account shows a stage; none invents a prior touch or meeting', 'Researching · No recent touch' in focus and 'Last touch' not in focus and 'Meeting booked' not in focus, focus[:500])
     r.click('#ai-stage [data-account="advent"]', 'Open Advent'); r.page.wait_for_timeout(300)
     hot = r.text('#ai-stage .ai-whyhot'); r.shot('advent_why_hot')
     r.check('Why hot separates the public fundraise from simulated buyer activity', 'Why hot' in hot and 'Public source' in hot and 'Simulated activity' in hot and '$30 billion' in hot, hot[:500])
@@ -374,12 +374,12 @@ def demo_path(r: Run):
     page = r.text('#ai-stage')
     r.check('Buyer access names the sourced people behind the points', 'Heather Zuzenak, named and sourced (1)' in page, page[:300])
     r.click('#ai-stage [data-tab="activity"]', 'Activity tab'); act = r.text('#ai-stage')
-    r.check('Activity is labeled simulated, with buyer and seller activity apart and the booked meeting shown', 'Simulated activity' in act and 'Buyer activity' in act and 'Your activity' in act and 'Meeting booked: Thu Nov 19' in act, act[:500])
+    r.check('Activity is labeled simulated and shows buyer signals only, no invented seller contact', 'Simulated activity' in act and 'Buyer activity' in act and 'Your activity' not in act and 'Coming up' not in act, act[:500])
     r.click('#ai-stage [data-build-plan]', 'Prepare campaign')
     r.page.locator('#ai-plan-action').wait_for(state='visible', timeout=20000)
     body = r.text('#ai-stage'); subject = r.page.input_value('#ai-message-subject'); msg = r.page.input_value('#ai-message')
-    r.check('Email is the AI draft to the named contact: a pre-read, not a request to book', subject == 'Pre-read for Nov 19' and msg.startswith('Hi Heather,') and 'pre-read' in msg and msg.strip().endswith('Claudio') and 'Alex' not in msg, (subject, msg[:300]))
-    r.check('Next action prepares the booked meeting', 'meeting' in r.page.input_value('#ai-plan-action').lower(), r.page.input_value('#ai-plan-action'))
+    r.check('Email is the AI draft to the named contact: first outreach, no invented call or meeting', subject == 'Side letters across the new funds' and msg.startswith('Hi Heather,') and 'pre-read' not in msg.lower() and 'call on' not in msg and msg.strip().endswith('Claudio') and 'Alex' not in msg, (subject, msg[:300]))
+    r.check('Next action is first outreach, not meeting prep', r.page.input_value('#ai-plan-action').startswith('Email Heather') and 'meeting' not in r.page.input_value('#ai-plan-action').lower(), r.page.input_value('#ai-plan-action'))
     r.fill('#ai-plan-action', EDIT, 'Edit next action'); r.click('#ai-approve-plan', 'Approve plan')
     r.page.reload(); r.page.wait_for_timeout(700); go_focus(r)
     focus = r.text('#ai-stage'); r.shot('focus_after_approval')
@@ -418,11 +418,11 @@ def weekly_plan(r: Run):
     r.check('No one-account-per-day rota', not re.search(r'(?im)^\s*(mon|tue|wed|thu|fri)(day)?\b', brief) and 'first five days' not in brief.lower(), brief[:300])
     people = [rows.nth(i).locator('.ai-weekpeople li').all_inner_texts() for i in range(rows.count())]
     r.check('Every account names people with their titles', all(len(p) >= 2 and all(',' in x for x in p) for p in people), people)
-    r.check('Three people where a meeting is booked, two elsewhere', [len(p) for p in people] == [3, 2, 2, 2, 2], [len(p) for p in people])
-    r.check('Advent lists the people already engaged: Heather, Brian and Sarah', [x.split(',')[0] for x in people[0]] == ['Heather Zuzenak', 'Brian Busch', 'Sarah Mead Smith'], people[0])
+    r.check('Two people per account before any meeting is booked', [len(p) for p in people] == [2, 2, 2, 2, 2], [len(p) for p in people])
+    r.check('Advent lists its potential champion and budget owner (no one engaged yet)', [x.split(',')[0] for x in people[0]] == ['Heather Zuzenak', 'Susan Gentile'], people[0])
     r.check('Buying roles are labeled as possibilities, not facts', 'Potential champion' in people[1][0] and 'Potential budget owner' in people[1][1], people[1])
     r.check('Each account carries this week\'s move', brief.upper().count('THIS WEEK') == 7, brief.upper().count('THIS WEEK'))
-    r.check('Customers follow under Defend the house, with their people', 'Defend the house' in brief and 'Rachel Stock, General Counsel and Chief Compliance Officer' in brief and 'TA Associates' in brief, brief[-500:])
+    r.check('Customers follow under Customer priorities, with their people', 'Customer priorities' in brief and 'Rachel Stock, General Counsel and Chief Compliance Officer' in brief and 'TA Associates' in brief, brief[-500:])
     before = brief
     r.page.keyboard.press('Escape'); r.page.wait_for_timeout(200)
     go_focus(r); r.click('#ai-stage [data-brief-kind="weekly"]', 'Weekly brief again'); r.click('#ai-compose-brief', 'Prepare brief'); r.page.locator('#ai-save-brief').wait_for(timeout=5000)
@@ -456,15 +456,15 @@ def battery_and_contacts(r: Run):
     r.page.locator('.ai-modal [data-select-person]').nth(1).click(); r.clicks += 1; r.page.wait_for_timeout(300)
     r.check('Choosing a contact updates the campaign', 'Chris Schiavo' in r.text('#ai-stage .ai-entry'), r.text('#ai-stage .ai-entry'))
     r.click('.ai-sidebar [data-nav="accounts"]', 'Accounts'); rows = r.text('#ai-stage'); r.click('#ai-stage [data-account="thoma"]', 'Open Thoma Bravo'); r.page.wait_for_timeout(300); tb = r.text('#ai-stage')
-    r.check('Thoma Bravo: its Jun 3, 2025 fund close reads as over a year old in the score, Why now and What we know', 'Last relevant fund event (Jun 3, 2025) is over a year old.' in tb and 'Fund close · Jun 3, 2025. Over a year old (0 of 4 timing points).' in tb and 'Announced Jun 3, 2025.' in tb and 'No dated fund event on file' not in tb and 'No dated trigger yet' not in tb, tb[:900])
-    r.check('Thoma Bravo: the Accounts row says the fund event is over a year old', 'Good fit · Fund event over a year old' in rows, rows[:600])
+    r.check('Thoma Bravo: its Jun 3, 2025 fund close reads as over a year old in the score, Why now and What we know', 'Last relevant fund event (Jun 3, 2025) is over a year old.' in tb and 'Fund close · Jun 3, 2025. Older fund event (0 of 4 timing points).' in tb and 'Announced Jun 3, 2025.' in tb and 'No dated fund event on file' not in tb and 'No dated trigger yet' not in tb, tb[:900])
+    r.check('Thoma Bravo: the Accounts row says Older fund event', 'Good fit · Older fund event' in rows, rows[:600])
 
 
 @scenario('tour', 'New seller takes the product tour')
 def tour(r: Run):
     r.click('.ai-sidebar [data-tour-start]', 'Take the product tour')
     titles, marked = [], []
-    for i in range(9):
+    for i in range(10):
         r.page.locator('#ai-tour h2').wait_for(timeout=5000)
         titles.append(r.page.inner_text('#ai-tour h2'))
         r.page.wait_for_timeout(250)
@@ -472,7 +472,7 @@ def tour(r: Run):
         if i == 4:
             r.check('Tour offers to draft live', r.page.locator('[data-tour-run]').count() == 1)
         r.click('[data-tour-next]', f'Tour step {i + 1}')
-    r.check('Tour walks all nine steps in order', titles[0] == 'Your book, ranked' and titles[4] == 'Watch AI draft the campaign' and titles[-1] == 'Your weekly brief', titles)
+    r.check('Tour walks all ten steps in order', titles[0] == 'Your book, ranked' and titles[4] == 'Watch AI draft the campaign' and titles[8] == 'From reply to discovery meeting' and titles[-1] == 'Your weekly brief', titles)
     r.check('Each step highlights what it explains', all(marked), marked)
     r.check('Finish closes the tour', r.page.locator('#ai-tour').count() == 0 and r.page.locator('.ai-tourtarget').count() == 0)
     r.click('.ai-sidebar [data-modal="seller-guide"]', 'Seller Q&A')

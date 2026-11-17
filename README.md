@@ -13,18 +13,20 @@ This version focuses on one product: LP-obligation tracking for private-markets 
 ## Inputs
 
 - **Prepared public research:** 11 accounts (9 net new, 2 customers), 128 linked public sources and 104 researched contacts, with names and titles from each firm's own website. Every source links to the page it came from.
-- **Simulated activity:** stages, calls, meetings, email opens and customer health are made up for the demo and labelled "Simulated activity" or "Simulated data" wherever they appear.
+- **Simulated activity:** buyer signals and customer health are made up for the demo and labelled "Simulated activity" or "Simulated data" wherever they appear. Every account starts in initial outreach: no prior call, known pain or booked meeting.
 - **Not connected:** this build has no live connection to a CRM, a fund database, a contact-enrichment tool or LinkedIn. The public build shows firm team-page links and leaves out contact emails and LinkedIn profiles.
 
 ## What it does
 
 - **My focus.** The accounts are ranked before the seller opens the page. Each shows its score, the reason to look, the entry-point person and the next move, plus an estimate of time back this week.
 - **Why this account.** A 0–10 score from four visible drivers: Fund lifecycle (4), ICP fit (3), Buyer access (2) and Signal strength (1). It tells a seller where to look; it does not predict who will buy. The weights are design choices, not a fitted model.
-- **Catch me up.** A handover brief for a new book, or a return brief after 2, 3 or 4 weeks away. Sections are Start here, Defend the house, Gaps to close and Plan for the week, with a firm-profile link beside each person so the seller can check the recommendation.
+- **Catch me up.** A brief for a new account list, or a return brief after 2, 3 or 4 weeks away. Sections are Your priority accounts, Customer priorities, Gaps to close and Plan for the week, with a firm-profile link beside each person so the seller can check the recommendation.
 - **Prepare campaign.** One live model call reads only that account's active sources and drafts goals, pain to confirm, who to talk to, the angle, discovery questions, the next step and an email.
-- **Review and approve.** The seller edits the next step and approves the plan. Approval adds the plan's next steps to My tasks. It does not confirm the buyer's problem, change qualification or write to a CRM, and nothing is ever emailed.
-- **Tasks and calendar.** Tasks start undated. The seller picks a date, and only then can a task open a prefilled, all-day Google Calendar draft. The seller sets the time and reminder and saves it in Google Calendar. This is a one-way handoff, not a sync: a saved event does not change if the plan changes later.
-- **Print / Save PDF.** A weekly report built from the current state: the five accounts with why now and its source, pain and questions from the reviewed plan (or marked as a prepared suggestion), people with profile links, actions marked Approved or Suggested, and task dates.
+- **Review and approve.** The seller edits the next step and approves the plan. Approval adds that exact step to My tasks. It does not change the buyer's stage, confirm the buyer's problem, change qualification or write to a CRM, and nothing is ever emailed.
+- **Discovery meeting.** When a buyer replies, the seller records the reply; only then does the stage change. A meeting counts as booked only after the seller marks it confirmed. A confirmed meeting gets an internal pre-call plan: objective, time, primary prospect and attendees (confirmed or not), the seller as meeting owner, why now with sources, an agenda that can be shared, and separately the internal hypotheses, questions and unknowns. After the call the seller records what the buyer said, what was confirmed, what is still unknown, the agreed step with owner and date, and any dependencies or blockers. Nothing there is written by AI, and none of it changes qualification automatically.
+- **Tasks and calendar.** Approved tasks start under Not scheduled. The seller sets a date, and only then can a task open a prefilled all-day Google Calendar draft. A recorded meeting can open a timed draft with the shareable agenda. The seller sets the reminder and saves it in Google Calendar; opening a draft does not book anything. This is a one-way handoff, not a sync.
+- **Daily and weekly briefs.** Built from tasks and plans; a saved brief is flagged when tasks, replies or meetings change. Saving a brief never approves anything or creates tasks.
+- **Print / Save PDF.** A weekly report built from the current state: the priority accounts with why now and its source, pain and questions from the reviewed plan (or marked as a prepared suggestion), people with profile links, actions marked Approved or Suggested, task dates, and any recorded reply, meeting and agreed step. The pre-call plan prints on its own, with the seller's notes.
 - **Change an input.** Turn a source off and the score and priority move with it. An approved plan built on that source has its approval withdrawn and is flagged for another review.
 
 ## Where the AI is, and where it isn't
@@ -33,7 +35,7 @@ This version focuses on one product: LP-obligation tracking for private-markets 
 - **Code controls** the ranking, the score, the request and response checks, account rules (for example, no expansion talk while a customer has an open service issue), the approval rules, tasks, briefs and the report. Catch me up and the weekly brief are built by code, not by extra model calls.
 - **The seller reviews** whether the sources support what the draft says, edits it and approves it.
 
-The checks confirm that each citation points to a real, active source supplied for that account, that hypotheses are labelled as hypotheses, and that unsupported fields stay unknown. A valid citation shows where a claim points; it does not prove the inference is right, which is why the seller reviews it. If a draft fails the checks, the screen says so and the model redrafts once; if the model is down, the seller's work is kept.
+The checks confirm that each citation points to a real, active source supplied for that account, that hypotheses are labelled as hypotheses, that unsupported fields stay unknown, and that an email never tells the buyer we saw their page views, visits or email opens. A valid citation shows where a claim points; it does not prove the inference is right, which is why the seller reviews it. If a draft fails the checks, the screen says so and the model redrafts once; if the model is down, the seller's work is kept.
 
 ## How it's built
 
@@ -77,6 +79,7 @@ Rebuild the browser engine after changing `workspace/`: `npm run build:engine`.
 - 50 engine tests, 43 server tests, 18 hosted-function rule checks.
 - 15 scripted seller scenarios (118 checks) in a real browser: Monday seller, new rep, back from leave, stale plan, model outage, rapid clicks, phone width, blocked storage.
 - 57 checks for profile links, section layout at 360, 390 and 430 px, task dates, the calendar handoff and the PDF report.
+- 71 checks for the two-stage workflow: no invented contact at the start, reply and meeting only when recorded, the pre-call plan, notes that persist, briefs that notice changes, and tasks, calendar drafts and PDFs that agree.
 - A wording audit across 341 screens and dialogs, and release checks for headers, speed, accessibility, keyboard use and Safari's engine.
 
 ## Current limitations
@@ -85,6 +88,7 @@ Rebuild the browser engine after changing `workspace/`: `npm run build:engine`.
 - Research is prepared ahead of time; there are no live data connections, and contact titles can go out of date.
 - Workspace state lives in the browser, not a shared database, and the app's date is fixed at November 16, 2026.
 - The calendar handoff opens a draft; saving it, reminders and any later changes happen in Google Calendar.
+- Replies and meetings are entered by the seller; there is no inbox or calendar connection.
 - PDF export uses the browser's print dialog.
 - Approval does not enforce a fresh draft after the evidence changes; it withdraws the approval and flags the plan instead.
 - Tested in Chromium and WebKit; not in Firefox or on a real phone.

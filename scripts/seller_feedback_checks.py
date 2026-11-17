@@ -7,7 +7,7 @@ from playwright.sync_api import sync_playwright
 
 url = sys.argv[1] if len(sys.argv) > 1 else 'http://127.0.0.1:8767/'
 out = pathlib.Path(sys.argv[2] if len(sys.argv) > 2 else 'docs/seller_feedback'); out.mkdir(parents=True, exist_ok=True)
-EDIT = 'Send Heather the pre-read by Wednesday and confirm Brian is joining Thursday.'
+EDIT = 'Email Heather today: ask how side letter obligations from GPE XI are tracked, and who owns them.'
 checks = []
 def check(label, ok, detail=''):
     checks.append({'label': label, 'ok': bool(ok), 'detail': '' if ok else str(detail)[:400]})
@@ -28,10 +28,10 @@ with sync_playwright() as pw:
     p.goto(url); p.wait_for_selector('#ai-stage'); p.wait_for_timeout(700)
     open_handover(p)
     secs = p.evaluate("""() => [...document.querySelectorAll('.ai-modal .ai-catchsection')].map(s => ({cls: s.className, h: s.querySelector('h3').innerText.trim(), icon: !!s.querySelector('h3 svg'), border: getComputedStyle(s).borderLeftWidth, bg: getComputedStyle(s).backgroundImage !== 'none'}))""")
-    check('Handover: four sections, each boxed with a 5px colored edge, icon and label', len(secs) == 4 and all(s['border'] == '5px' and s['icon'] for s in secs) and [s['h'] for s in secs] == ['Start here', 'Defend the house', 'Gaps to close', 'Plan for the week'], secs)
+    check('Handover: four sections, each boxed with a 5px colored edge, icon and label', len(secs) == 4 and all(s['border'] == '5px' and s['icon'] for s in secs) and [s['h'] for s in secs] == ['Your priority accounts', 'Customer priorities', 'Gaps to close', 'Plan for the week'], secs)
     links = p.evaluate("""() => [...document.querySelectorAll('.ai-modal a.ai-proflink')].map(a => ({href: a.href, target: a.target, rel: a.rel, text: a.innerText.trim(), sec: a.closest('.ai-catchsection').querySelector('h3').innerText.trim()}))""")
-    start = [l for l in links if l['sec'] == 'Start here']; plan = [l for l in links if l['sec'] == 'Plan for the week']
-    check('Start here: a firm-profile link for each of the top three entry points', len(start) == 3, start)
+    start = [l for l in links if l['sec'] == 'Your priority accounts']; plan = [l for l in links if l['sec'] == 'Plan for the week']
+    check('Your priority accounts: a firm-profile link for each of the top three entry points', len(start) == 3, start)
     npeople = p.locator('.ai-modal .ai-cs-plan .ai-weekpeople li').count()
     check(f'Plan for the week: a firm-profile link for every named person ({npeople})', npeople >= 10 and len(plan) == npeople, (len(plan), npeople))
     check('Every profile link is https, opens a new tab with noopener, and is not LinkedIn', links and all(l['href'].startswith('https://') and l['target'] == '_blank' and 'noopener' in l['rel'] and 'linkedin' not in l['href'] for l in links), links[:3])
@@ -52,7 +52,7 @@ with sync_playwright() as pw:
     check('First task is the exact edited next action', EDIT in first.inner_text(), first.inner_text()[:200])
     check('Task checkbox still has a label (clicking the text toggles it)', p.evaluate("() => { const i = document.querySelector('#ai-stage .ai-task input[type=checkbox]'); return !!(i && i.labels && i.labels.length); }"))
     tx = p.inner_text('#ai-stage')
-    check('No date is stamped on approval: the two dated-style tasks say No date yet', tx.count('No date yet') == 2 and 'Due Nov 16' not in tx and 'Due Nov 17' not in tx, tx[:400])
+    check('No date is stamped on approval: the two dated-style tasks say Not scheduled', tx.count('Not scheduled') >= 2 and p.locator('#ai-stage [data-task-due]').count() == 2 and 'Due Nov 16' not in tx and 'Due Nov 17' not in tx, tx[:400])
     check('No calendar button until the seller picks a date', p.locator('#ai-stage [data-cal-open]').count() == 0 and p.locator('#ai-stage [data-task-due]').count() == 2)
     check('Open Google Calendar link in the My tasks header', p.locator('#ai-stage a[href^="https://calendar.google.com/calendar/r/week/2026/11/16"]').count() == 1)
     p.fill('[data-task-due="advent-0"]', '2026-11-18'); p.dispatch_event('[data-task-due="advent-0"]', 'change'); p.wait_for_timeout(500)

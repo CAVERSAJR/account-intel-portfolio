@@ -7,7 +7,7 @@ from playwright.sync_api import sync_playwright
 
 URL = (sys.argv[1] if len(sys.argv) > 1 else 'https://account-intel-live.vercel.app').rstrip('/') + '/'
 OUT = Path(sys.argv[2] if len(sys.argv) > 2 else 'docs/public_walkthrough'); OUT.mkdir(parents=True, exist_ok=True)
-EDIT = 'Send Heather the pre-read by Wednesday and confirm Brian is joining Thursday.'
+EDIT = 'Email Heather today: ask how side letter obligations from GPE XI are tracked, and who owns them.'
 res = {'url': URL, 'checks': []}
 def check(label, ok, detail=''):
     res['checks'].append({'check': label, 'pass': bool(ok), 'detail': str(detail)[:400]}); print(('PASS ' if ok else 'FAIL ') + label + ('' if ok else ' :: ' + str(detail)[:300]))
@@ -46,10 +46,10 @@ with sync_playwright() as pw:
     check('Advent Why hot: public fundraise and simulated activity are separately labeled', 'Public source' in hot and 'Simulated activity' in hot and '$30 billion' in hot and 'Strongest buyer signal' in hot, hot[:300])
     page.locator('#ai-stage .ai-whyhot .ai-cite.sim').first.click(); page.wait_for_timeout(300)
     ev = page.inner_text('.ai-modal'); res['advent_activity_evidence'] = ev
-    check('Advent: simulated evidence opens with its label', 'Simulated data' in ev and 'Meeting booked: Thursday Nov 19' in ev, ev[:300])
+    check('Advent: simulated evidence opens with its label and no prior contact', 'Simulated data' in ev and 'not contacted this account yet' in ev, ev[:300])
     page.keyboard.press('Escape'); page.wait_for_timeout(200)
     res['advent'] = a = draft(page, 'advent', '02_advent_campaign.png')
-    check('Advent live draft: named-contact email, a pre-read rather than a request to book', a['live'] and a['message'].startswith('Hi Heather,') and a['contact'].startswith('Heather Zuzenak') and any(w in (a['subject'] + ' ' + a['message']).lower() for w in ('pre-read', 'ahead of', 'beforehand')) and 'nov 19' in a['message'].lower() and 'book' not in a['message'].lower().replace('booked', ''), a)
+    check('Advent live draft: named-contact email, first outreach with no invented call, meeting or tracking', a['live'] and a['message'].startswith('Hi Heather,') and a['contact'].startswith('Heather Zuzenak') and not re.search(r'thanks for the call|our call|pre-read|walkthrough|nov 19|viewed|visited|looked at|opened', a['subject'] + ' ' + a['message'], re.I), a)
     check('Advent: every claim cites a source', a['sourced'] and a['sourced'].split('/')[0].strip() == a['sourced'].split('/')[1].strip(), a['sourced'])
     page.fill('#ai-plan-action', EDIT); page.click('#ai-approve-plan'); page.wait_for_timeout(500)
     page.reload(); page.wait_for_timeout(1500); page.click('.ai-sidebar [data-nav="focus"]'); page.wait_for_timeout(400)
